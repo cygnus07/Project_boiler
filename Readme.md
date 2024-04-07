@@ -1,0 +1,1 @@
+Project boiler for professional project structure
