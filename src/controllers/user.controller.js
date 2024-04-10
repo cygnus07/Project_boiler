@@ -7,13 +7,18 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessandRefreshToken = async(userId) => {
     try {
+       // console.log("i am here")
         const user = await User.findById(userId)
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
+        const accessToken = await user.generateAccessToken();
+        const refreshToken = await user.generateRefreshToken();
+        //console.log("i am here too")
         user.refreshToken = refreshToken;
         await user.save({validateBeforeSave: false});
         return {accessToken, refreshToken};
     } catch (error) {
+        console.log(userId)
+        console.log(accessToken)
+        console.log(refreshToken)
         throw new ApiError(500, "Failed to generate tokens");
     }
 }
@@ -106,7 +111,7 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found");
     }
 
-   const isPasswordValid = await user.ispasswordCorrect(password);
+   const isPasswordValid = await user.isPasswordCorrect(password);
    if(!isPasswordValid){
        throw new ApiError(401, "Invalid password");
    }
@@ -164,5 +169,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 export { 
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
  }

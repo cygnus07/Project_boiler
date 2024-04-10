@@ -1,29 +1,36 @@
-
-import jwt from "jsonwebtoken";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import jwt from "jsonwebtoken";
+import { User } from "../models/user.model.js";
 
+export const verifyJWT = asyncHandler(async (req, _, next) => {
+    try {
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
 
-export const verifyJWT = asyncHandler(async (req, res, next) => {
-  // get token from cookies
-  // verify token
-  // get user from token
-  // attach user to req object
-  // call next
- try {
-     const accessToken = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
-     if (!accessToken) {
-       throw new ApiError(401, "Access token not found");
-     }
-     const decodedToken = await jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
-     const user = await User.findById(decodedToken?. _id).select("-password -refreshToken");
-     if (!user) {
-       throw new ApiError(401, "Invalid Access Token");
-     }
-     req.user = user;
-     next();
- } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid Access Token");
- }
+        console.log("Token:", token);
+
+        if (typeof token !== "string" || token.length === 0) {
+            throw new ApiError(401, "Token is not a valid string");
+        }
+
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+        console.log("Decoded Token:", decodedToken);
+
+        if (!decodedToken || typeof decodedToken !== "object") {
+            throw new ApiError(401, "Decoded token is not a valid object");
+        }
+
+        const user = await User.findById(decodedToken?._id).select("-password -refreshToken");
+
+        if (!user) {
+            throw new ApiError(401, "Invalid Access Token");
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error("Error verifying JWT:", error.message);
+        next(error); // Pass the error to the global error handler middleware
+    }
 });
