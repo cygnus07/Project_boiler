@@ -198,6 +198,8 @@ const refrestAccessToken = asyncHandler(async (req, res) => {
 
     const {accessToken, newRefreshToken} = await generateAccessandRefreshToken(user._id);
 
+    console.log("Access Token refreshed successfully")
+
     return res
     .status(200)
     .cookie("accessToken", accessToken, options)
